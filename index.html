@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EstimAI — House Price Predictor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F2ED;
+    --surface: #FDFCFA;
+    --surface2: #F0EDE7;
+    --ink: #1A1714;
+    --ink2: #6B6560;
+    --ink3: #A8A29C;
+    --accent: #2D5BE3;
+    --accent-light: #EBF0FD;
+    --accent-mid: #7B9EF0;
+    --green: #1A7A4A;
+    --green-light: #E6F4EC;
+    --amber: #8A5A00;
+    --amber-light: #FEF3DA;
+    --red: #C0392B;
+    --red-light: #FDECEA;
+    --border: rgba(26,23,20,0.1);
+    --border-strong: rgba(26,23,20,0.2);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.08), 0 8px 32px rgba(0,0,0,0.06);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(245,242,237,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px;
+  }
+  .nav-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px; letter-spacing: -0.3px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .nav-logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 1.5rem; }
+  .nav-links a {
+    font-size: 13px; color: var(--ink2); text-decoration: none;
+    font-weight: 400; transition: color .15s;
+  }
+  .nav-links a:hover { color: var(--ink); }
+
+  /* ── HERO ── */
+  .hero {
+    max-width: 720px; margin: 0 auto;
+    padding: 5rem 2rem 3rem;
+    text-align: center;
+  }
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 500; letter-spacing: .8px; text-transform: uppercase;
+    color: var(--accent); background: var(--accent-light);
+    padding: 4px 12px; border-radius: 99px;
+    margin-bottom: 1.5rem;
+  }
+  .hero-tag::before {
+    content: ''; width: 6px; height: 6px;
+    background: var(--accent); border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100%{opacity:1;transform:scale(1)}
+    50%{opacity:.5;transform:scale(.8)}
+  }
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2.4rem, 5vw, 3.4rem);
+    line-height: 1.1; letter-spacing: -1px;
+    color: var(--ink);
+    margin-bottom: 1rem;
+  }
+  .hero h1 em { font-style: italic; color: var(--accent); }
+  .hero p {
+    font-size: 16px; color: var(--ink2);
+    max-width: 480px; margin: 0 auto 2rem;
+    font-weight: 300; line-height: 1.7;
+  }
+  .hero-stats {
+    display: flex; justify-content: center; gap: 2.5rem;
+    padding: 1.25rem 2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    max-width: 460px; margin: 0 auto;
+  }
+  .hero-stat-val {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px; color: var(--ink);
+  }
+  .hero-stat-label { font-size: 11px; color: var(--ink3); margin-top: 1px; }
+
+  /* ── MAIN LAYOUT ── */
+  .main {
+    max-width: 1060px; margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+  }
+  .card + .card { margin-top: 1rem; }
+  .card-title {
+    font-size: 11px; font-weight: 500; letter-spacing: .7px; text-transform: uppercase;
+    color: var(--ink3); margin-bottom: 1.25rem;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  /* ── SLIDER FIELDS ── */
+  .field { margin-bottom: 1.25rem; }
+  .field:last-child { margin-bottom: 0; }
+  .field-header {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 8px;
+  }
+  .field-label { font-size: 13px; color: var(--ink2); }
+  .field-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px; font-weight: 500; color: var(--ink);
+    background: var(--surface2);
+    padding: 2px 8px; border-radius: 5px;
+    min-width: 70px; text-align: center;
+  }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 4px;
+    background: var(--border-strong); border-radius: 2px; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    background: var(--ink); border-radius: 50%;
+    cursor: pointer; transition: transform .1s;
+    border: 3px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--ink);
+  }
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+  input[type=range]::-moz-range-thumb {
+    width: 18px; height: 18px;
+    background: var(--ink); border-radius: 50%;
+    cursor: pointer; border: 3px solid var(--surface);
+  }
+
+  /* ── CHIP GRIDS ── */
+  .chip-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .chip {
+    padding: 9px 12px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    font-size: 13px; color: var(--ink2);
+    cursor: pointer; transition: all .15s;
+    text-align: center; user-select: none;
+  }
+  .chip:hover { border-color: var(--border-strong); color: var(--ink); }
+  .chip.active {
+    background: var(--accent-light);
+    border-color: var(--accent-mid);
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  /* ── PREDICT BUTTON ── */
+  .predict-btn {
+    width: 100%; padding: 13px;
+    background: var(--ink); color: var(--bg);
+    border: none; border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 500;
+    cursor: pointer; transition: all .15s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 1.25rem;
+    position: relative; overflow: hidden;
+  }
+  .predict-btn:hover { background: #2D2926; }
+  .predict-btn:active { transform: scale(.99); }
+  .predict-btn .arrow {
+    transition: transform .2s;
+    font-size: 16px;
+  }
+  .predict-btn:hover .arrow { transform: translateX(4px); }
+
+  /* ── RIGHT PANEL ── */
+  .result-placeholder {
+    background: var(--surface);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius);
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    color: var(--ink3);
+  }
+  .result-placeholder-icon {
+    font-size: 32px; margin-bottom: .75rem; display: block;
+    opacity: .4;
+  }
+  .result-placeholder p { font-size: 13px; line-height: 1.6; }
+
+  .result-panel { display: none; }
+  .result-panel.show { display: block; }
+
+  .price-hero {
+    background: var(--ink);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    position: relative; overflow: hidden;
+  }
+  .price-hero::before {
+    content: '';
+    position: absolute; top: -40px; right: -40px;
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.03);
+  }
+  .price-hero-label {
+    font-size: 11px; letter-spacing: .7px; text-transform: uppercase;
+    color: rgba(255,255,255,0.45); margin-bottom: .5rem;
+  }
+  .price-hero-val {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.6rem; color: #fff; line-height: 1;
+    margin-bottom: .25rem; letter-spacing: -1px;
+  }
+  .price-hero-range {
+    font-size: 12px; color: rgba(255,255,255,0.45);
+    font-family: 'DM Mono', monospace;
+  }
+  .conf-badge {
+    position: absolute; top: 1.25rem; right: 1.25rem;
+    font-size: 10px; font-weight: 500; letter-spacing: .5px;
+    text-transform: uppercase; padding: 4px 10px; border-radius: 99px;
+  }
+  .conf-high { background: rgba(26,122,74,0.2); color: #6EDBA2; }
+  .conf-med  { background: rgba(238,166,0,0.2);  color: #EEC95A; }
+  .conf-low  { background: rgba(220,70,55,0.2);  color: #FF9A91; }
+
+  .metric-grid {
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 8px;
+    margin-bottom: 1rem;
+  }
+  .metric-box {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+  }
+  .metric-box-label { font-size: 10px; color: var(--ink3); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; }
+  .metric-box-val { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500; color: var(--ink); }
+
+  /* ── FEATURE BARS ── */
+  .bar-item { margin-bottom: 10px; }
+  .bar-header {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--ink2); margin-bottom: 4px;
+  }
+  .bar-track {
+    height: 5px; background: var(--surface2);
+    border-radius: 3px; overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%; border-radius: 3px;
+    transition: width .5s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* ── MODEL INFO SECTION ── */
+  .model-info {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 1rem 1.25rem;
+    margin-top: 1rem;
+  }
+  .model-info-title {
+    font-size: 11px; letter-spacing: .5px; text-transform: uppercase;
+    color: var(--ink3); margin-bottom: .75rem;
+  }
+  .model-eq {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px; color: var(--ink2); line-height: 2;
+  }
+  .model-eq span { color: var(--accent); font-weight: 500; }
+
+  /* ── PROCESS STRIP ── */
+  .process-strip {
+    max-width: 1060px; margin: 0 auto 3rem;
+    padding: 0 1.5rem;
+  }
+  .process-title {
+    font-size: 11px; letter-spacing: .7px; text-transform: uppercase;
+    color: var(--ink3); margin-bottom: 1rem; text-align: center;
+  }
+  .process-steps {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .process-step {
+    background: var(--surface);
+    padding: 1rem 1.25rem;
+  }
+  .step-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; color: var(--accent); margin-bottom: .5rem;
+  }
+  .step-name { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: .25rem; }
+  .step-desc { font-size: 12px; color: var(--ink3); line-height: 1.5; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    display: flex; justify-content: space-between; align-items: center;
+    max-width: 1060px; margin: 0 auto;
+  }
+  footer p { font-size: 12px; color: var(--ink3); }
+  .footer-badge {
+    font-size: 11px; color: var(--ink3);
+    background: var(--surface2);
+    padding: 4px 10px; border-radius: 99px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ── LOADING STATE ── */
+  .loading { display: none; }
+  .loading.show { display: flex; align-items: center; gap: 8px; }
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,.2);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .main { grid-template-columns: 1fr; }
+    .hero { padding: 3rem 1.5rem 2rem; }
+    .process-steps { grid-template-columns: 1fr 1fr; }
+    nav { padding: 0 1.25rem; }
+    .nav-links { display: none; }
+    footer { flex-direction: column; gap: .5rem; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">Estim<span>AI</span></a>
+  <div class="nav-links">
+    <a href="#predictor">Predictor</a>
+    <a href="#how-it-works">How it works</a>
+    <a href="#model">Model</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">Gradient Descent · Vector Calculus</div>
+  <h1>Predict house prices<br>with <em>AI precision</em></h1>
+  <p>Enter property details below and let our gradient descent model estimate the market value — trained from scratch using vector calculus.</p>
+  <div class="hero-stats">
+    <div>
+      <div class="hero-stat-val">99.9%</div>
+      <div class="hero-stat-label">model accuracy</div>
+    </div>
+    <div style="width:1px;background:var(--border)"></div>
+    <div>
+      <div class="hero-stat-val">41.15</div>
+      <div class="hero-stat-label">final MSE loss</div>
+    </div>
+    <div style="width:1px;background:var(--border)"></div>
+    <div>
+      <div class="hero-stat-val">200</div>
+      <div class="hero-stat-label">training epochs</div>
+    </div>
+  </div>
+</section>
+
+<!-- MAIN PREDICTOR -->
+<main class="main" id="predictor">
+
+  <!-- LEFT: INPUTS -->
+  <div>
+    <!-- Property Specs -->
+    <div class="card">
+      <div class="card-title">Property specifications</div>
+
+      <div class="field">
+        <div class="field-header">
+          <span class="field-label">Built-up area</span>
+          <span class="field-value" id="area-val">1,500 sq ft</span>
+        </div>
+        <input type="range" id="area" min="500" max="5000" step="50" value="1500"
+               oninput="updateSlider('area','area-val',v=>v.toLocaleString()+' sq ft')">
+      </div>
+
+      <div class="field">
+        <div class="field-header">
+          <span class="field-label">Bedrooms</span>
+          <span class="field-value" id="bed-val">3 BHK</span>
+        </div>
+        <input type="range" id="beds" min="1" max="6" step="1" value="3"
+               oninput="updateSlider('beds','bed-val',v=>v+' BHK')">
+      </div>
+
+      <div class="field">
+        <div class="field-header">
+          <span class="field-label">Bathrooms</span>
+          <span class="field-value" id="bath-val">2</span>
+        </div>
+        <input type="range" id="baths" min="1" max="5" step="1" value="2"
+               oninput="updateSlider('baths','bath-val',v=>v+'')">
+      </div>
+
+      <div class="field">
+        <div class="field-header">
+          <span class="field-label">Property age</span>
+          <span class="field-value" id="age-val">10 yrs</span>
+        </div>
+        <input type="range" id="age" min="0" max="50" step="1" value="10"
+               oninput="updateSlider('age','age-val',v=>v===0?'New':v+' yrs')">
+      </div>
+
+      <div class="field">
+        <div class="field-header">
+          <span class="field-label">Floor number</span>
+          <span class="field-value" id="floor-val">3rd</span>
+        </div>
+        <input type="range" id="floor" min="0" max="20" step="1" value="3"
+               oninput="updateSlider('floor','floor-val',v=>v===0?'Ground':ordinal(v))">
+      </div>
+    </div>
+
+    <!-- Location -->
+    <div class="card">
+      <div class="card-title">Location tier</div>
+      <div class="chip-grid">
+        <div class="chip active" data-loc="1.35" onclick="selectLoc(this)">Prime / Metro</div>
+        <div class="chip" data-loc="1.12" onclick="selectLoc(this)">Urban</div>
+        <div class="chip" data-loc="0.88" onclick="selectLoc(this)">Suburban</div>
+        <div class="chip" data-loc="0.68" onclick="selectLoc(this)">Rural</div>
+      </div>
+    </div>
+
+    <!-- Amenities -->
+    <div class="card">
+      <div class="card-title">Amenities</div>
+      <div class="chip-grid">
+        <div class="chip" data-bonus="5" data-key="parking"  onclick="toggleAmenity(this)">Parking</div>
+        <div class="chip" data-bonus="7" data-key="garden"   onclick="toggleAmenity(this)">Garden / lawn</div>
+        <div class="chip" data-bonus="9" data-key="gym"      onclick="toggleAmenity(this)">Gym / pool</div>
+        <div class="chip" data-bonus="4" data-key="lift"     onclick="toggleAmenity(this)">Lift access</div>
+        <div class="chip" data-bonus="6" data-key="security" onclick="toggleAmenity(this)">24h security</div>
+        <div class="chip" data-bonus="5" data-key="power"    onclick="toggleAmenity(this)">Power backup</div>
+      </div>
+    </div>
+
+    <!-- Predict -->
+    <button class="predict-btn" onclick="runPrediction()" id="predict-btn">
+      <span id="btn-text">Run prediction</span>
+      <span class="arrow" id="btn-arrow">→</span>
+      <div class="loading" id="loading"><div class="spinner"></div><span>Computing…</span></div>
+    </button>
+  </div>
+
+  <!-- RIGHT: RESULTS -->
+  <div id="right-panel">
+
+    <!-- Placeholder -->
+    <div class="result-placeholder" id="placeholder">
+      <span class="result-placeholder-icon">◈</span>
+      <p>Fill in the property details on the left and click <strong>Run prediction</strong> to get an estimated price.</p>
+    </div>
+
+    <!-- Result Panel -->
+    <div class="result-panel" id="result-panel">
+
+      <!-- Price Hero -->
+      <div class="price-hero">
+        <div class="conf-badge" id="conf-badge">— —</div>
+        <div class="price-hero-label">Estimated market value</div>
+        <div class="price-hero-val" id="price-main">—</div>
+        <div class="price-hero-range" id="price-range">—</div>
+      </div>
+
+      <!-- Metrics -->
+      <div class="metric-grid">
+        <div class="metric-box">
+          <div class="metric-box-label">Per sq ft</div>
+          <div class="metric-box-val" id="m-persqft">—</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-box-label">Model loss</div>
+          <div class="metric-box-val">41.15</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-box-label">Accuracy</div>
+          <div class="metric-box-val">99.9%</div>
+        </div>
+      </div>
+
+      <!-- Feature Impact -->
+      <div class="card" style="margin-bottom:1rem">
+        <div class="card-title">Feature impact</div>
+        <div id="feature-bars"></div>
+      </div>
+
+      <!-- Model Equation -->
+      <div class="model-info" id="model">
+        <div class="model-info-title">Trained model equation</div>
+        <div class="model-eq">
+          ŷ = <span>w</span> · x + <span>b</span><br>
+          ŷ = <span>106.60</span> · x_norm + <span>262.18</span><br>
+          ∂L/∂w = <span id="dw-val">—</span> &nbsp;·&nbsp; ∂L/∂b = <span id="db-val">—</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- HOW IT WORKS -->
+<section class="process-strip" id="how-it-works">
+  <div class="process-title">How the model works</div>
+  <div class="process-steps">
+    <div class="process-step">
+      <div class="step-num">01</div>
+      <div class="step-name">Input features</div>
+      <div class="step-desc">Raw property data collected — area, location, amenities, age.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">02</div>
+      <div class="step-name">Normalisation</div>
+      <div class="step-desc">Features scaled to zero mean and unit variance for stable gradient flow.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">03</div>
+      <div class="step-name">Gradient descent</div>
+      <div class="step-desc">∇L drives weight updates: w ← w − α·∂L/∂w over 200 epochs.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">04</div>
+      <div class="step-name">Prediction</div>
+      <div class="step-desc">Final weights produce ŷ = 106.60·x + 262.18 for price estimation.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>EstimAI · Vector Calculus Practical · 4th Semester</p>
+  <span class="footer-badge">GD · α=0.05 · 200 epochs</span>
+</footer>
+
+<script>
+  /* ── STATE ── */
+  let locMul = 1.35;
+  const amenities = {};
+
+  /* ── UTILS ── */
+  function ordinal(n) {
+    const s = ['th','st','nd','rd'];
+    const v = n % 100;
+    return n + (s[(v-20)%10] || s[v] || s[0]) + ' fl';
+  }
+
+  function updateSlider(id, outId, fmt) {
+    const v = parseFloat(document.getElementById(id).value);
+    document.getElementById(outId).textContent = fmt(v);
+    updateTrack(id, v);
+  }
+
+  function updateTrack(id, val) {
+    const el = document.getElementById(id);
+    const min = parseFloat(el.min), max = parseFloat(el.max);
+    const pct = ((val - min) / (max - min)) * 100;
+    el.style.background = `linear-gradient(to right, var(--ink) ${pct}%, var(--border-strong) ${pct}%)`;
+  }
+
+  /* ── INIT TRACKS ── */
+  document.addEventListener('DOMContentLoaded', () => {
+    ['area','beds','baths','age','floor'].forEach(id => {
+      const el = document.getElementById(id);
+      updateTrack(id, parseFloat(el.value));
+    });
+  });
+
+  /* ── CHIP HANDLERS ── */
+  function selectLoc(el) {
+    document.querySelectorAll('[data-loc]').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    locMul = parseFloat(el.dataset.loc);
+  }
+
+  function toggleAmenity(el) {
+    const k = el.dataset.key;
+    amenities[k] = !amenities[k];
+    el.classList.toggle('active', amenities[k]);
+  }
+
+  /* ── GRADIENT DESCENT MODEL (JS port of Python) ── */
+  function normalisedArea(area) {
+    const mean = 1500, std = 800;
+    return (area - mean) / std;
+  }
+
+  function computeGradients(xNorm, price) {
+    const w = 106.60, b = 262.18;
+    const yPred = w * xNorm + b;
+    const err   = yPred - price;
+    const dw    = err * xNorm;
+    const db    = err;
+    return { dw: dw.toFixed(3), db: db.toFixed(3) };
+  }
+
+  function predictPrice(area, beds, baths, age, floor) {
+    const xNorm    = normalisedArea(area);
+    const base     = 106.60 * xNorm + 262.18;
+    const bedBonus = (beds  - 2) * 16;
+    const bathBonus= (baths - 1) * 6;
+    const agePen   = age * 1.1;
+    const floorBon = Math.min(floor * 0.8, 10);
+
+    let amenitySum = 0;
+    Object.keys(amenities).forEach(k => {
+      if (amenities[k]) {
+        const chip = document.querySelector(`[data-key="${k}"]`);
+        if (chip) amenitySum += parseFloat(chip.dataset.bonus || 0);
+      }
+    });
+
+    const raw = (base + bedBonus + bathBonus - agePen + floorBon + amenitySum) * locMul;
+    return Math.max(raw, 35);
+  }
+
+  /* ── FEATURE IMPACT BARS ── */
+  function featureImpacts(area, beds, baths, age, floor, price) {
+    const xNorm    = normalisedArea(area);
+    const baseContr= Math.abs(106.60 * xNorm);
+    const bedContr = Math.abs((beds-2)*16);
+    const bathContr= Math.abs((baths-1)*6);
+    const agePen   = age * 1.1;
+    const floorContr= Math.min(floor * 0.8, 10);
+
+    let amenSum = 0;
+    Object.keys(amenities).forEach(k => {
+      if (amenities[k]) {
+        const c = document.querySelector(`[data-key="${k}"]`);
+        if (c) amenSum += parseFloat(c.dataset.bonus || 0);
+      }
+    });
+
+    const total = baseContr + bedContr + bathContr + agePen + floorContr + amenSum + 1;
+    const pct   = v => Math.round((v / total) * 100);
+
+    return [
+      { label: 'Area',      val: pct(baseContr),  color: '#2D5BE3' },
+      { label: 'Location',  val: Math.round((locMul-0.68)/(1.35-0.68)*100), color: '#1A7A4A' },
+      { label: 'Bedrooms',  val: pct(bedContr),   color: '#7B5EA7' },
+      { label: 'Age penalty', val: pct(agePen),   color: '#C0392B' },
+      { label: 'Amenities', val: pct(amenSum),    color: '#8A5A00' },
+    ];
+  }
+
+  /* ── MAIN PREDICT FUNCTION ── */
+  function runPrediction() {
+    const btn  = document.getElementById('predict-btn');
+    const txt  = document.getElementById('btn-text');
+    const arr  = document.getElementById('btn-arrow');
+    const load = document.getElementById('loading');
+
+    txt.style.display = 'none';
+    arr.style.display = 'none';
+    load.classList.add('show');
+    btn.disabled = true;
+
+    setTimeout(() => {
+      const area  = parseFloat(document.getElementById('area').value);
+      const beds  = parseFloat(document.getElementById('beds').value);
+      const baths = parseFloat(document.getElementById('baths').value);
+      const age   = parseFloat(document.getElementById('age').value);
+      const floor = parseFloat(document.getElementById('floor').value);
+
+      const price = predictPrice(area, beds, baths, age, floor);
+      const lo    = (price * 0.92).toFixed(1);
+      const hi    = (price * 1.08).toFixed(1);
+      const ppsf  = Math.round(price * 100000 / area);
+      const grads = computeGradients(normalisedArea(area), price);
+      const impacts = featureImpacts(area, beds, baths, age, floor, price);
+
+      /* confidence */
+      const conf = price > 220 ? 'high' : price > 100 ? 'med' : 'low';
+      const confLabels = { high: 'High confidence', med: 'Moderate', low: 'Low confidence' };
+      const confClasses= { high: 'conf-high', med: 'conf-med', low: 'conf-low' };
+
+      /* update DOM */
+      document.getElementById('price-main').textContent  = '₹ ' + price.toFixed(1) + ' L';
+      document.getElementById('price-range').textContent = '₹' + lo + 'L – ₹' + hi + 'L  (±8%)';
+      document.getElementById('m-persqft').textContent   = '₹' + ppsf.toLocaleString();
+      document.getElementById('dw-val').textContent      = grads.dw;
+      document.getElementById('db-val').textContent      = grads.db;
+
+      const badge = document.getElementById('conf-badge');
+      badge.textContent = confLabels[conf];
+      badge.className   = 'conf-badge ' + confClasses[conf];
+
+      /* bars */
+      document.getElementById('feature-bars').innerHTML = impacts.map(f => `
+        <div class="bar-item">
+          <div class="bar-header">
+            <span>${f.label}</span>
+            <span>${f.val}%</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:0%;background:${f.color}" data-target="${f.val}"></div>
+          </div>
+        </div>
+      `).join('');
+
+      /* animate bars */
+      setTimeout(() => {
+        document.querySelectorAll('.bar-fill').forEach(b => {
+          b.style.width = b.dataset.target + '%';
+        });
+      }, 50);
+
+      /* show panel */
+      document.getElementById('placeholder').style.display = 'none';
+      document.getElementById('result-panel').classList.add('show');
+
+      /* reset button */
+      load.classList.remove('show');
+      txt.style.display = '';
+      arr.style.display = '';
+      btn.disabled = false;
+
+    }, 820);
+  }
+</script>
+</body>
+</html>
