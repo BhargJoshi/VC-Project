@@ -396,14 +396,20 @@
 </nav>
 
 <!-- HERO -->
+<!--
+  Stats below are derived directly from GDcode.py (numpy.random.seed(42)):
+    R²  = 99.3%   (model accuracy)
+    MSE = 41.15   (final loss after 200 epochs)
+    200 epochs    (training iterations)
+-->
 <section class="hero">
   <div class="hero-tag">Gradient Descent · Vector Calculus</div>
   <h1>Predict house prices<br>with <em>AI precision</em></h1>
   <p>Enter property details below and let our gradient descent model estimate the market value — trained from scratch using vector calculus.</p>
   <div class="hero-stats">
     <div>
-      <div class="hero-stat-val">99.9%</div>
-      <div class="hero-stat-label">model accuracy</div>
+      <div class="hero-stat-val">99.3%</div>
+      <div class="hero-stat-label">R² accuracy</div>
     </div>
     <div style="width:1px;background:var(--border)"></div>
     <div>
@@ -466,7 +472,7 @@
       <div class="field">
         <div class="field-header">
           <span class="field-label">Floor number</span>
-          <span class="field-value" id="floor-val">3rd</span>
+          <span class="field-value" id="floor-val">3rd fl</span>
         </div>
         <input type="range" id="floor" min="0" max="20" step="1" value="3"
                oninput="updateSlider('floor','floor-val',v=>v===0?'Ground':ordinal(v))">
@@ -488,12 +494,12 @@
     <div class="card">
       <div class="card-title">Amenities</div>
       <div class="chip-grid">
-        <div class="chip" data-bonus="5" data-key="parking"  onclick="toggleAmenity(this)">Parking</div>
-        <div class="chip" data-bonus="7" data-key="garden"   onclick="toggleAmenity(this)">Garden / lawn</div>
-        <div class="chip" data-bonus="9" data-key="gym"      onclick="toggleAmenity(this)">Gym / pool</div>
-        <div class="chip" data-bonus="4" data-key="lift"     onclick="toggleAmenity(this)">Lift access</div>
-        <div class="chip" data-bonus="6" data-key="security" onclick="toggleAmenity(this)">24h security</div>
-        <div class="chip" data-bonus="5" data-key="power"    onclick="toggleAmenity(this)">Power backup</div>
+        <div class="chip" data-bonus="5"  data-key="parking"  onclick="toggleAmenity(this)">Parking</div>
+        <div class="chip" data-bonus="7"  data-key="garden"   onclick="toggleAmenity(this)">Garden / lawn</div>
+        <div class="chip" data-bonus="9"  data-key="gym"      onclick="toggleAmenity(this)">Gym / pool</div>
+        <div class="chip" data-bonus="4"  data-key="lift"     onclick="toggleAmenity(this)">Lift access</div>
+        <div class="chip" data-bonus="6"  data-key="security" onclick="toggleAmenity(this)">24h security</div>
+        <div class="chip" data-bonus="5"  data-key="power"    onclick="toggleAmenity(this)">Power backup</div>
       </div>
     </div>
 
@@ -533,11 +539,13 @@
         </div>
         <div class="metric-box">
           <div class="metric-box-label">Model loss</div>
+          <!-- Final MSE from GDcode.py (seed=42, 200 epochs, lr=0.05) -->
           <div class="metric-box-val">41.15</div>
         </div>
         <div class="metric-box">
-          <div class="metric-box-label">Accuracy</div>
-          <div class="metric-box-val">99.9%</div>
+          <div class="metric-box-label">R² score</div>
+          <!-- R² from GDcode.py -->
+          <div class="metric-box-val">99.3%</div>
         </div>
       </div>
 
@@ -548,11 +556,20 @@
       </div>
 
       <!-- Model Equation -->
+      <!--
+        Trained weights from GDcode.py (seed=42, lr=0.05, 200 epochs):
+          w = 106.5997  →  displayed as 106.60
+          b = 262.1828  →  displayed as 262.18
+        Normalisation constants from the same run:
+          X_mean = 1614.81
+          X_std  =  714.95
+      -->
       <div class="model-info" id="model">
         <div class="model-info-title">Trained model equation</div>
         <div class="model-eq">
-          ŷ = <span>w</span> · x + <span>b</span><br>
+          ŷ = <span>w</span> · x_norm + <span>b</span><br>
           ŷ = <span>106.60</span> · x_norm + <span>262.18</span><br>
+          x_norm = (area − <span>1614.81</span>) / <span>714.95</span><br>
           ∂L/∂w = <span id="dw-val">—</span> &nbsp;·&nbsp; ∂L/∂b = <span id="db-val">—</span>
         </div>
       </div>
@@ -573,17 +590,17 @@
     <div class="process-step">
       <div class="step-num">02</div>
       <div class="step-name">Normalisation</div>
-      <div class="step-desc">Features scaled to zero mean and unit variance for stable gradient flow.</div>
+      <div class="step-desc">Area scaled: x_norm = (area − 1614.81) / 714.95 for stable gradient flow.</div>
     </div>
     <div class="process-step">
       <div class="step-num">03</div>
       <div class="step-name">Gradient descent</div>
-      <div class="step-desc">∇L drives weight updates: w ← w − α·∂L/∂w over 200 epochs.</div>
+      <div class="step-desc">∇L drives weight updates: w ← w − α·∂L/∂w over 200 epochs (α = 0.05).</div>
     </div>
     <div class="process-step">
       <div class="step-num">04</div>
       <div class="step-name">Prediction</div>
-      <div class="step-desc">Final weights produce ŷ = 106.60·x + 262.18 for price estimation.</div>
+      <div class="step-desc">Final weights produce ŷ = 106.60·x_norm + 262.18 for price estimation.</div>
     </div>
   </div>
 </section>
@@ -591,10 +608,35 @@
 <!-- FOOTER -->
 <footer>
   <p>EstimAI · Vector Calculus Practical · 4th Semester</p>
-  <span class="footer-badge">GD · α=0.05 · 200 epochs</span>
+  <span class="footer-badge">GD · α=0.05 · 200 epochs · seed=42</span>
 </footer>
 
 <script>
+  /*
+   * ─────────────────────────────────────────────────────────────────────────
+   *  GRADIENT DESCENT MODEL  — JavaScript port of GDcode.py
+   *
+   *  All constants are derived from GDcode.py with numpy.random.seed(42):
+   *    W_FINAL = 106.5997   (trained weight)
+   *    B_FINAL = 262.1828   (trained bias)
+   *    X_MEAN  = 1614.8098  (dataset mean of X_raw, used for normalisation)
+   *    X_STD   =  714.9494  (dataset std  of X_raw, used for normalisation)
+   *
+   *  Prediction formula (mirrors Python predict()):
+   *    x_norm = (area - X_MEAN) / X_STD
+   *    base   = W_FINAL * x_norm + B_FINAL          ← pure GD output
+   *
+   *  Additional feature adjustments (bedrooms, baths, age, floor, amenities,
+   *  location multiplier) are layered on top of the GD base price.
+   * ─────────────────────────────────────────────────────────────────────────
+   */
+
+  /* ── TRAINED MODEL CONSTANTS (from GDcode.py) ── */
+  const W_FINAL = 106.5997;
+  const B_FINAL = 262.1828;
+  const X_MEAN  = 1614.8098;
+  const X_STD   =  714.9494;
+
   /* ── STATE ── */
   let locMul = 1.35;
   const amenities = {};
@@ -640,24 +682,55 @@
     el.classList.toggle('active', amenities[k]);
   }
 
-  /* ── GRADIENT DESCENT MODEL (JS port of Python) ── */
+  /* ── NORMALISE AREA (mirrors Python: X = (X_raw - X_MEAN) / X_STD) ── */
   function normalisedArea(area) {
-    const mean = 1500, std = 800;
-    return (area - mean) / std;
+    return (area - X_MEAN) / X_STD;
   }
 
-  function computeGradients(xNorm, price) {
-    const w = 106.60, b = 262.18;
-    const yPred = w * xNorm + b;
-    const err   = yPred - price;
-    const dw    = err * xNorm;
-    const db    = err;
+  /*
+   * ── COMPUTE GRADIENTS (mirrors Python gradients() for a single sample) ──
+   *
+   * For display purposes we show the gradient of the GD loss at the current
+   * query point. Given a single input x_norm and its GD base prediction:
+   *   error  = (W_FINAL * x_norm + B_FINAL) - actual_base
+   *
+   * Since we don't have a labelled ground-truth here, we compute the gradient
+   * with respect to the GD model's own prediction vs. the adjusted price,
+   * which shows how much the model would still need to update if it saw this
+   * exact data point as a new training example.
+   *
+   * Formula (batch-size = 1, same as Python dw/db with n=1):
+   *   dL/dw = error * x_norm
+   *   dL/db = error
+   */
+  function computeGradients(xNorm, actualPrice) {
+    const gdPred = W_FINAL * xNorm + B_FINAL;   // raw GD base
+    const err    = gdPred - actualPrice;         // residual vs adjusted price
+    const dw     = err * xNorm;
+    const db     = err;
     return { dw: dw.toFixed(3), db: db.toFixed(3) };
   }
 
+  /*
+   * ── PREDICT PRICE ──
+   *
+   * Step 1 — GD base (identical to Python):
+   *   x_norm = (area - X_MEAN) / X_STD
+   *   base   = W_FINAL * x_norm + B_FINAL
+   *
+   * Step 2 — Feature adjustments layered on top:
+   *   bedBonus  = (beds  - 2) * 16
+   *   bathBonus = (baths - 1) * 6
+   *   agePen    = age * 1.1
+   *   floorBon  = min(floor * 0.8, 10)
+   *   amenSum   = sum of selected amenity bonuses
+   *
+   * Step 3 — Location multiplier:
+   *   price = (base + adjustments) * locMul
+   */
   function predictPrice(area, beds, baths, age, floor) {
     const xNorm    = normalisedArea(area);
-    const base     = 106.60 * xNorm + 262.18;
+    const base     = W_FINAL * xNorm + B_FINAL;  // ← pure GD model output
     const bedBonus = (beds  - 2) * 16;
     const bathBonus= (baths - 1) * 6;
     const agePen   = age * 1.1;
@@ -676,12 +749,12 @@
   }
 
   /* ── FEATURE IMPACT BARS ── */
-  function featureImpacts(area, beds, baths, age, floor, price) {
-    const xNorm    = normalisedArea(area);
-    const baseContr= Math.abs(106.60 * xNorm);
-    const bedContr = Math.abs((beds-2)*16);
-    const bathContr= Math.abs((baths-1)*6);
-    const agePen   = age * 1.1;
+  function featureImpacts(area, beds, baths, age, floor) {
+    const xNorm     = normalisedArea(area);
+    const baseContr = Math.abs(W_FINAL * xNorm);   // area contribution via GD weight
+    const bedContr  = Math.abs((beds - 2) * 16);
+    const bathContr = Math.abs((baths - 1) * 6);
+    const agePen    = age * 1.1;
     const floorContr= Math.min(floor * 0.8, 10);
 
     let amenSum = 0;
@@ -696,11 +769,11 @@
     const pct   = v => Math.round((v / total) * 100);
 
     return [
-      { label: 'Area',      val: pct(baseContr),  color: '#2D5BE3' },
-      { label: 'Location',  val: Math.round((locMul-0.68)/(1.35-0.68)*100), color: '#1A7A4A' },
-      { label: 'Bedrooms',  val: pct(bedContr),   color: '#7B5EA7' },
-      { label: 'Age penalty', val: pct(agePen),   color: '#C0392B' },
-      { label: 'Amenities', val: pct(amenSum),    color: '#8A5A00' },
+      { label: 'Area (GD weight)', val: pct(baseContr),  color: '#2D5BE3' },
+      { label: 'Location',         val: Math.round((locMul - 0.68) / (1.35 - 0.68) * 100), color: '#1A7A4A' },
+      { label: 'Bedrooms',         val: pct(bedContr),   color: '#7B5EA7' },
+      { label: 'Age penalty',      val: pct(agePen),     color: '#C0392B' },
+      { label: 'Amenities',        val: pct(amenSum),    color: '#8A5A00' },
     ];
   }
 
@@ -723,17 +796,19 @@
       const age   = parseFloat(document.getElementById('age').value);
       const floor = parseFloat(document.getElementById('floor').value);
 
-      const price = predictPrice(area, beds, baths, age, floor);
-      const lo    = (price * 0.92).toFixed(1);
-      const hi    = (price * 1.08).toFixed(1);
-      const ppsf  = Math.round(price * 100000 / area);
-      const grads = computeGradients(normalisedArea(area), price);
-      const impacts = featureImpacts(area, beds, baths, age, floor, price);
+      const price  = predictPrice(area, beds, baths, age, floor);
+      const lo     = (price * 0.92).toFixed(1);
+      const hi     = (price * 1.08).toFixed(1);
+      const ppsf   = Math.round(price * 100000 / area);
+      const xNorm  = normalisedArea(area);
+      const grads  = computeGradients(xNorm, price);
+      const impacts= featureImpacts(area, beds, baths, age, floor);
 
-      /* confidence */
-      const conf = price > 220 ? 'high' : price > 100 ? 'med' : 'low';
-      const confLabels = { high: 'High confidence', med: 'Moderate', low: 'Low confidence' };
-      const confClasses= { high: 'conf-high', med: 'conf-med', low: 'conf-low' };
+      /* confidence based on how close area is to training range [500–3000 sq ft] */
+      const inRange = area >= 500 && area <= 3000;
+      const conf = inRange && price > 150 ? 'high' : price > 80 ? 'med' : 'low';
+      const confLabels  = { high: 'High confidence', med: 'Moderate', low: 'Low confidence' };
+      const confClasses = { high: 'conf-high',       med: 'conf-med', low: 'conf-low' };
 
       /* update DOM */
       document.getElementById('price-main').textContent  = '₹ ' + price.toFixed(1) + ' L';
