@@ -18,6 +18,27 @@ except NameError:
 print(f"Plots will be saved to: {SAVE_DIR}")
 
 # =============================================================================
+# UTILITY: Indian Number System Formatter
+# =============================================================================
+
+def format_indian(value_in_lakhs):
+    """
+    Convert a price in lakhs to a human-readable Indian number system string.
+    - Below 1 lakh      → e.g. "₹45,000"         (shouldn't occur here, but safe)
+    - 1 lakh to 99 lakh → e.g. "₹42.35 Lakh"
+    - 1 crore and above → e.g. "₹1.23 Crore"
+    """
+    rupees = value_in_lakhs * 1_00_000   # convert lakhs → rupees
+    if rupees >= 1_00_00_000:            # 1 crore = 10,000,000
+        crores = rupees / 1_00_00_000
+        return f"₹{crores:.2f} Crore"
+    elif rupees >= 1_00_000:             # 1 lakh = 100,000
+        lakhs = rupees / 1_00_000
+        return f"₹{lakhs:.2f} Lakh"
+    else:
+        return f"₹{rupees:,.0f}"
+
+# =============================================================================
 # 1. DATASET  (Synthetic House Price Data)
 # =============================================================================
 np.random.seed(42)
@@ -110,6 +131,16 @@ print()
 print("  ► These values are used verbatim in index.html")
 print(f"    normalisedArea(x) = (x - {X_MEAN:.2f}) / {X_STD:.2f}")
 print(f"    ŷ = {w_final:.4f} · x_norm + {b_final:.4f}")
+print()
+
+# --- Sample predictions in Indian number format ---
+print("  ► Sample Predictions (Gradient Descent → Indian Format)")
+print("  " + "-" * 46)
+sample_areas = [500, 1000, 1500, 2000, 2500, 3000]
+for area in sample_areas:
+    x_norm = (area - X_MEAN) / X_STD
+    price_lakhs = predict(x_norm, w_final, b_final)   # ← uses GD-learned w & b
+    print(f"    Area: {area:5} sq ft  →  {format_indian(price_lakhs):>20}  ({price_lakhs:.2f} Lakh)")
 print("=" * 50)
 
 # =============================================================================
@@ -130,7 +161,7 @@ plt.savefig(path1, dpi=150)
 plt.show()
 print(f"Saved: {path1}")
 
-# --- Plot 2 : Regression Line ---
+# --- Plot 2 : Regression Line (Y-axis in Indian format) ---
 fig, ax = plt.subplots(figsize=(7, 4))
 sort_idx = np.argsort(X)
 ax.scatter(X, y, color='coral', alpha=0.7, label='Actual data', s=40)
@@ -138,6 +169,12 @@ ax.plot(X[sort_idx], y_pred_final[sort_idx], color='navy', linewidth=2, label='P
 ax.set_xlabel("Normalised Area (x)", fontsize=12)
 ax.set_ylabel("House Price (Lakhs)", fontsize=12)
 ax.set_title("Linear Regression via Gradient Descent", fontsize=13, fontweight='bold')
+
+# Reformat Y-axis ticks using Indian number system
+yticks = ax.get_yticks()
+ax.set_yticks(yticks)
+ax.set_yticklabels([format_indian(v) for v in yticks], fontsize=8)
+
 ax.legend()
 ax.grid(True, linestyle='--', alpha=0.5)
 plt.tight_layout()
