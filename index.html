@@ -631,6 +631,36 @@
    * ─────────────────────────────────────────────────────────────────────────
    */
 
+  /* ── INDIAN NUMBER SYSTEM FORMATTER ── */
+  /*
+   * Converts a price in lakhs to Indian number system display string.
+   *   < 1 Lakh   → ₹X (fallback, shouldn't occur in this model)
+   *   1–99 Lakh  → ₹XX.XX Lakh
+   *   ≥ 1 Crore  → ₹X.XX Crore
+   */
+  function formatIndian(lakhs) {
+    const rupees = lakhs * 1e5;
+    if (rupees >= 1e7) {
+      return '₹' + (rupees / 1e7).toFixed(2) + ' Cr';
+    } else if (rupees >= 1e5) {
+      return '₹' + (rupees / 1e5).toFixed(2) + ' L';
+    } else {
+      return '₹' + Math.round(rupees).toLocaleString('en-IN');
+    }
+  }
+
+  /* Full label version for the main price hero (no abbreviation) */
+  function formatIndianFull(lakhs) {
+    const rupees = lakhs * 1e5;
+    if (rupees >= 1e7) {
+      return '₹' + (rupees / 1e7).toFixed(2) + ' Crore';
+    } else if (rupees >= 1e5) {
+      return '₹' + (rupees / 1e5).toFixed(2) + ' Lakh';
+    } else {
+      return '₹' + Math.round(rupees).toLocaleString('en-IN');
+    }
+  }
+
   /* ── TRAINED MODEL CONSTANTS (from GDcode.py) ── */
   const W_FINAL = 106.5997;
   const B_FINAL = 262.1828;
@@ -797,8 +827,8 @@
       const floor = parseFloat(document.getElementById('floor').value);
 
       const price  = predictPrice(area, beds, baths, age, floor);
-      const lo     = (price * 0.92).toFixed(1);
-      const hi     = (price * 1.08).toFixed(1);
+      const lo     = price * 0.92;
+      const hi     = price * 1.08;
       const ppsf   = Math.round(price * 100000 / area);
       const xNorm  = normalisedArea(area);
       const grads  = computeGradients(xNorm, price);
@@ -811,9 +841,9 @@
       const confClasses = { high: 'conf-high',       med: 'conf-med', low: 'conf-low' };
 
       /* update DOM */
-      document.getElementById('price-main').textContent  = '₹ ' + price.toFixed(1) + ' L';
-      document.getElementById('price-range').textContent = '₹' + lo + 'L – ₹' + hi + 'L  (±8%)';
-      document.getElementById('m-persqft').textContent   = '₹' + ppsf.toLocaleString();
+      document.getElementById('price-main').textContent  = formatIndianFull(price);
+      document.getElementById('price-range').textContent = formatIndian(parseFloat(lo)) + ' – ' + formatIndian(parseFloat(hi)) + '  (±8%)';
+      document.getElementById('m-persqft').textContent   = '₹' + ppsf.toLocaleString('en-IN') + '/sqft';
       document.getElementById('dw-val').textContent      = grads.dw;
       document.getElementById('db-val').textContent      = grads.db;
 
